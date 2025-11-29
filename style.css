@@ -1,0 +1,211 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #111;
+  color: #eee;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Left side: controls and script input */
+.sidebar {
+  width: 28%;
+  min-width: 260px;
+  background: #181818;
+  padding: 16px;
+  box-sizing: border-box;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.3s ease, width 0.3s ease, min-width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  border-right: none;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.toggle-btn {
+  background: #333;
+  padding: 4px 8px;
+  font-size: 1.2rem;
+  line-height: 1;
+  min-width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar.hidden .sidebar-content {
+  display: none;
+}
+
+.sidebar.hidden .toggle-btn {
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  z-index: 1001;
+  transform: translateX(0);
+  background: #2979ff;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar h1 {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+}
+
+label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+textarea {
+  width: 100%;
+  height: 40vh;
+  background: #101010;
+  color: #eee;
+  border: 1px solid #444;
+  padding: 8px;
+  resize: vertical;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+button {
+  padding: 8px 12px;
+  margin-right: 4px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  background: #2979ff;
+  color: white;
+  font-weight: 600;
+}
+
+button.secondary {
+  background: #333;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.speed-control,
+.size-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.speed-control input[type="range"],
+.size-control input[type="range"] {
+  width: 120px;
+}
+
+/* Right side: teleprompter view */
+.teleprompter-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.teleprompter-screen {
+  width: 100%;
+  max-width: 900px;
+  height: 80vh;
+  border-radius: 12px;
+  border: 2px solid #333;
+  background: radial-gradient(circle at top, #222, #000);
+  color: #ddd;
+  padding: 40px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font-size: 2rem;
+  line-height: 1.6;
+  transition: font-size 0.2s ease, max-width 0.3s ease;
+  position: relative;
+}
+
+body.sidebar-hidden .teleprompter-screen {
+  max-width: 1400px;
+}
+
+.teleprompter-screen::-webkit-scrollbar {
+  width: 0.4rem;
+}
+
+.teleprompter-screen::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 999px;
+}
+
+.word {
+  transition: color 0.15s ease, background-color 0.15s ease, text-shadow 0.15s ease;
+}
+
+.word.current {
+  color: #fff;
+  background: rgba(41, 121, 255, 0.18);
+  text-shadow: 0 0 12px rgba(41, 121, 255, 0.8);
+  border-radius: 4px;
+  padding: 1px 2px;
+}
+
+.hint {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.floating-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  padding: 16px 24px;
+  font-size: 1.1rem;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.floating-btn-secondary {
+  left: auto;
+  right: 24px;
+  background: #333;
+}
+

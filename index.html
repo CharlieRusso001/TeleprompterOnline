@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Teleprompter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1>Teleprompter</h1>
+      <button id="toggleSidebarBtn" class="toggle-btn" title="Hide/Show Settings">−</button>
+    </div>
+    <div class="sidebar-content">
+      <p class="hint">
+        1. Paste your script<br>
+        2. Click <strong>Load Script</strong><br>
+        3. Press <strong>Play</strong> (or tap <strong>Space</strong> to pause/play)
+      </p>
+
+      <label for="scriptInput">Script text</label>
+      <textarea id="scriptInput">
+Welcome to the teleprompter demo. This text will be highlighted word by word as you speak. Adjust the speed using the slider, and press play when you are ready.
+      </textarea>
+
+      <div class="controls-row">
+        <button id="loadBtn">Load Script</button>
+        <button id="playPauseBtn" disabled>Play</button>
+        <button id="resetBtn" class="secondary" disabled>Reset</button>
+      </div>
+
+      <div class="controls-row">
+        <div class="speed-control">
+          <span>Speed:</span>
+          <input id="speedSlider" type="range" min="0.5" max="3" step="0.1" value="1.4">
+          <span id="speedValue">1.4×</span>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <div class="size-control">
+          <span>Text Size:</span>
+          <input id="sizeSlider" type="range" min="1" max="5" step="0.1" value="2">
+          <span id="sizeValue">2.0rem</span>
+        </div>
+      </div>
+
+      <p class="hint">
+        Tips: You can manually move to the next/previous word with the left/right arrow keys.
+      </p>
+    </div>
+  </div>
+
+  <div class="teleprompter-container">
+    <div id="teleprompter" class="teleprompter-screen">
+      <!-- Words will be injected here -->
+    </div>
+    <button id="floatingPlayPauseBtn" class="floating-btn" style="display: none;" disabled>Play</button>
+    <button id="floatingResetBtn" class="floating-btn floating-btn-secondary" style="display: none;" disabled>Reset</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
