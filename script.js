@@ -7,6 +7,7 @@ const speedSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
 const sizeSlider = document.getElementById('sizeSlider');
 const sizeValue = document.getElementById('sizeValue');
+const alignmentSelect = document.getElementById('alignmentSelect');
 const sidebar = document.getElementById('sidebar');
 const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
 const floatingPlayPauseBtn = document.getElementById('floatingPlayPauseBtn');
@@ -19,25 +20,89 @@ let isPlaying = false;
 const baseWordDelay = 350; // ms per word at speed 1.0
 
 function loadScript() {
-  const text = scriptInput.value.trim();
+  const text = scriptInput.value;
   teleprompter.innerHTML = '';
 
-  if (!text) {
+  if (!text.trim()) {
     alert('Please enter some text for the teleprompter.');
     return;
   }
 
-  const words = text.split(/\s+/);
-  wordSpans = words.map((word, idx) => {
-    const span = document.createElement('span');
-    span.textContent = word + ' ';
-    span.className = 'word';
-    span.dataset.index = idx;
-    teleprompter.appendChild(span);
-    return span;
+  // Split text into tokens, preserving spaces and newlines
+  // We'll split by spaces but keep track of multiple spaces and newlines
+  const lines = text.split(/\n/);
+  wordSpans = [];
+  let globalIndex = 0;
+
+  lines.forEach((line, lineIdx) => {
+    if (lineIdx > 0) {
+      // Add a newline span before each line except the first
+      const newlineSpan = document.createElement('span');
+      newlineSpan.textContent = '\n';
+      newlineSpan.className = 'word newline';
+      newlineSpan.dataset.index = globalIndex;
+      teleprompter.appendChild(newlineSpan);
+      wordSpans.push(newlineSpan);
+      globalIndex++;
+    }
+
+    // Handle empty lines - if line is empty, add an empty span to preserve the line
+    if (line.trim().length === 0 && line.length > 0) {
+      // Line has only whitespace - preserve it
+      const whitespaceSpan = document.createElement('span');
+      whitespaceSpan.textContent = line;
+      whitespaceSpan.className = 'word whitespace';
+      whitespaceSpan.dataset.index = globalIndex;
+      teleprompter.appendChild(whitespaceSpan);
+      wordSpans.push(whitespaceSpan);
+      globalIndex++;
+    } else if (line.length === 0) {
+      // Completely empty line - add a zero-width space to preserve it
+      const emptySpan = document.createElement('span');
+      emptySpan.textContent = ' ';
+      emptySpan.className = 'word whitespace';
+      emptySpan.dataset.index = globalIndex;
+      teleprompter.appendChild(emptySpan);
+      wordSpans.push(emptySpan);
+      globalIndex++;
+    } else {
+      // Split line by spaces, but preserve multiple spaces
+      const words = line.split(/(\s+)/);
+      
+      words.forEach((word) => {
+        if (word.length === 0) return;
+        
+        const span = document.createElement('span');
+        // If it's whitespace-only, preserve it as-is
+        if (/^\s+$/.test(word)) {
+          span.textContent = word;
+          span.className = 'word whitespace';
+        } else {
+          // Regular word - add a space after it
+          span.textContent = word + ' ';
+          span.className = 'word';
+        }
+        span.dataset.index = globalIndex;
+        teleprompter.appendChild(span);
+        wordSpans.push(span);
+        globalIndex++;
+      });
+    }
   });
 
+  // Find the first non-whitespace/non-newline span to start at
   currentIndex = 0;
+  while (currentIndex < wordSpans.length) {
+    const span = wordSpans[currentIndex];
+    if (span && !span.classList.contains('whitespace') && !span.classList.contains('newline')) {
+      break;
+    }
+    currentIndex++;
+  }
+  // If all spans are whitespace/newline, just start at 0
+  if (currentIndex >= wordSpans.length) {
+    currentIndex = 0;
+  }
   highlightCurrentWord();
   playPauseBtn.disabled = false;
   floatingPlayPauseBtn.disabled = false;
@@ -50,7 +115,10 @@ function highlightCurrentWord() {
 
   const currentSpan = wordSpans[currentIndex];
   if (currentSpan) {
-    currentSpan.classList.add('current');
+    // Only highlight if it's not a whitespace-only or newline span
+    if (!currentSpan.classList.contains('whitespace') && !currentSpan.classList.contains('newline')) {
+      currentSpan.classList.add('current');
+    }
     
     // Get the bounding rect of the current word relative to the teleprompter
     const teleprompterRect = teleprompter.getBoundingClientRect();
@@ -89,9 +157,23 @@ function updateTextSize() {
   sizeValue.textContent = size.toFixed(1) + 'rem';
 }
 
+function updateTextAlignment() {
+  const alignment = alignmentSelect.value || 'left';
+  teleprompter.style.textAlign = alignment;
+}
+
 function stepForward() {
   if (currentIndex < wordSpans.length - 1) {
     currentIndex++;
+    // Skip whitespace-only and newline spans when advancing
+    while (currentIndex < wordSpans.length - 1) {
+      const span = wordSpans[currentIndex];
+      if (span && (span.classList.contains('whitespace') || span.classList.contains('newline'))) {
+        currentIndex++;
+      } else {
+        break;
+      }
+    }
     highlightCurrentWord();
   } else {
     stopPlayback();
@@ -101,6 +183,15 @@ function stepForward() {
 function stepBackward() {
   if (currentIndex > 0) {
     currentIndex--;
+    // Skip whitespace-only and newline spans when going backward
+    while (currentIndex > 0) {
+      const span = wordSpans[currentIndex];
+      if (span && (span.classList.contains('whitespace') || span.classList.contains('newline'))) {
+        currentIndex--;
+      } else {
+        break;
+      }
+    }
     highlightCurrentWord();
   }
 }
@@ -159,11 +250,20 @@ function toggleSidebar() {
   floatingPlayPauseBtn.style.display = isHidden ? 'block' : 'none';
   floatingResetBtn.style.display = isHidden ? 'block' : 'none';
   
-  // Add/remove class to body for CSS styling
+  // Move button to body when sidebar is hidden to ensure it's clickable
   if (isHidden) {
     document.body.classList.add('sidebar-hidden');
+    // Move button to body to ensure it's clickable
+    document.body.appendChild(toggleSidebarBtn);
+    toggleSidebarBtn.classList.add('floating-toggle');
   } else {
     document.body.classList.remove('sidebar-hidden');
+    // Move button back to sidebar header
+    const sidebarHeader = document.querySelector('.sidebar-header');
+    if (sidebarHeader && !sidebarHeader.contains(toggleSidebarBtn)) {
+      sidebarHeader.appendChild(toggleSidebarBtn);
+    }
+    toggleSidebarBtn.classList.remove('floating-toggle');
   }
 }
 
@@ -187,6 +287,10 @@ sizeSlider.addEventListener('input', () => {
   updateTextSize();
 });
 
+alignmentSelect.addEventListener('change', () => {
+  updateTextAlignment();
+});
+
 // Keyboard shortcuts: Space = play/pause, Arrows = step
 document.addEventListener('keydown', (e) => {
   const activeTag = document.activeElement.tagName.toLowerCase();
@@ -208,8 +312,9 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Initialize text size
+// Initialize text size and alignment
 updateTextSize();
+updateTextAlignment();
 
 // Initialize floating button state
 floatingPlayPauseBtn.textContent = 'Play';
